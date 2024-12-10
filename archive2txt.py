@@ -7,45 +7,45 @@ def find_and_save_links(url, root_url, file_extension, visited=None, indent=0, o
         visited = set()
 
     if url in visited:
-        return  # Vermijd herhalingen
+        return  # Avoid repetitions
 
-    visited.add(url)  # Markeer deze URL als bezocht
+    visited.add(url)  # Mark this URL as visited
     print("  " * indent + f"[{url}]")
 
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Controleer of de aanvraag succesvol was
+        response.raise_for_status()  # Check if the request was successful
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Alle links op de pagina vinden
+        # Find all links on the page
         links = soup.find_all("a", href=True)
 
-        with open(output_file, "a") as f:  # Open output.txt in append-modus
+        with open(output_file, "a") as f:  # Open output.txt in append mode
             for link in links:
                 href = link['href']
-                # Maak een volledige URL van de link
+                # Create a full URL from the link
                 full_url = urljoin(url, href)
 
                 if full_url.startswith(root_url):
-                    # Controleer op bestandsextensie en sla op in output.txt
+                    # Check for file extension and save to output.txt
                     if full_url.endswith(file_extension):
-                        print("  " * (indent + 1) + f"Bestand gevonden: {full_url}")
+                        print("  " * (indent + 1) + f"File found: {full_url}")
                         f.write(full_url + "\n")
 
-                    # Recursief doorgaan naar subdirectories
+                    # Recursively go to subdirectories
                     if href.endswith("/"):
                         find_and_save_links(full_url, root_url, file_extension, visited, indent + 1, output_file)
     except Exception as e:
-        print("  " * indent + f"Fout: {e}")
+        print("  " * indent + f"Error: {e}")
 
-# Basis-URL en bestandsextensie
+# Base URL and file extension
 base_url = "https://archive.org/download/*********/"
-file_extension = ".7z"  # Pas de extensie aan naar wat je zoekt (bijvoorbeeld ".iso")
+file_extension = ".7z"  # Change the extension to the one you're looking for (e.g., ".iso")
 
-# Outputbestand wissen als het al bestaat
+# Clear the output file if it exists
 with open("output.txt", "w") as f:
-    f.write("")  # Leeg bestand om oude resultaten te verwijderen
+    f.write("")  # Empty the file to remove old results
 
-# Start het proces
-print(f"Zoeken naar '{file_extension}' bestanden in de directorystructuur:")
+# Start the process
+print(f"Searching for '{file_extension}' files in the directory structure:")
 find_and_save_links(base_url, base_url, file_extension)
